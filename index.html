@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titità ♫ ♩ - Entrenador de Ritme</title>
+    
+    <!-- Llibreries Externes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script src="https://unpkg.com/vexflow@4.2.2/releases/vexflow-min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb;       
+            --primary-light: #3b82f6;
+            --surface: #ffffff;
+            --bg: #f8fafc;            
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            
+            --gold: #fbbf24;
+            --silver: #94a3b8;
+            --bronze: #b45309;
+            --danger: #ef4444;
+            --success: #22c55e;
+            
+            --highlight: #f97316; 
+            --daily-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- SISTEMA DE VISTES --- */
+        .view-section {
+            width: 100%;
+            height: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s ease;
+            padding: 20px;
+            position: absolute; 
+            top: 0; left: 0;
+            background: var(--bg);
+        }
+
+        .hidden { display: none !important; opacity: 0; pointer-events: none; }
+
+        /* --- TIPOGRAFIA & UTILS --- */
+        h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-main); letter-spacing: -0.02em; }
+        p { color: var(--text-muted); margin: 0; line-height: 1.5; }
+        .text-center { text-align: center; }
+        .mt-4 { margin-top: 1.5rem; }
+        .mb-4 { margin-bottom: 1.5rem; }
+
+        /* --- VISTA 1: CALIBRATGE --- */
+        #view-calibration { background: var(--surface); z-index: 200; position: relative; }
+        
+        .app-logo {
+            width: 140px; 
+            height: 140px; 
+            margin-bottom: 1.5rem;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            object-fit: contain;
+        }
+
+        /* Selector Idioma (Rodó i bufó) */
+        #lang-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 1001;
+        }
+        .lang-flag { 
+            width: 34px; 
+            height: 34px; 
+            cursor: pointer; 
+            border-radius: 50%; /* Cercle perfecte */
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15); 
+            transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
+            opacity: 0.6; 
+            border: 2px solid white; /* Vora neta */
+            overflow: hidden; /* Retalla la bandera rectangular */
+        }
+        .lang-flag:hover { 
+            transform: translateY(-2px); 
+            opacity: 1; 
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+        .lang-flag.active { 
+            opacity: 1; 
+            border-color: var(--primary); /* Indicar actiu */
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+        .lang-flag svg { 
+            width: 100%; 
+            height: 100%; 
+            display: block; 
+            /* Els SVGs tenen preserveAspectRatio a l'HTML per omplir el cercle */
+        }
+
+        /* --- VISTA 2: MENÚ --- */
+        #view-menu { justify-content: flex-start; padding-top: 40px; max-width: 600px; margin: 0 auto; position: relative; }
+        .menu-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .menu-title h1 { margin: 0; font-size: 1.5rem; }
+        
+        .btn-calibrate-menu {
+            font-size: 0.85rem; color: var(--text-main); background: white; border: 1px solid var(--border);
+            padding: 8px 16px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+            transition: all 0.2s; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .btn-calibrate-menu:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); }
+
+        .btn-daily {
+            width: 100%; padding: 18px; margin-bottom: 1rem;
+            border-radius: 16px; border: none; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            color: white; font-weight: 700; font-size: 1.1rem;
+            background: var(--daily-gradient); box-shadow: 0 8px 20px -5px rgba(99, 102, 241, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden;
+        }
+        .btn-daily:hover { transform: translateY(-2px); }
+        .btn-daily:active { transform: scale(0.98); }
+        .btn-daily.completed { background: white; border: 2px solid var(--border); color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-daily.completed.gold { border-color: var(--gold); color: #92400e; background: #fffbeb; }
+        .btn-daily.completed.silver { border-color: var(--silver); color: #475569; background: #f8fafc; }
+        .btn-daily.completed.bronze { border-color: var(--bronze); color: #92400e; background: #fff7ed; }
+        .btn-daily.completed.fail { border-color: var(--danger); color: var(--danger); background: #fef2f2; }
+
+        .btn-random {
+            width: 100%; padding: 15px; background: white; border: 1px solid var(--border);
+            border-radius: 12px; color: var(--text-main); font-weight: 600; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; gap: 10px; transition: all 0.2s;
+            margin-bottom: 2.5rem; /* MÉS ESPAI AQUI */
+        }
+        .btn-random:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
+
+        .level-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; width: 100%; margin-bottom: 2rem; }
+        .level-cell {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600;
+            color: var(--text-muted); background: white; border: 1px solid var(--border);
+            transition: all 0.1s; position: relative;
+        }
+        .level-cell:hover { transform: translateY(-1px); border-color: var(--primary); }
+        .level-cell.locked { background-color: #f1f5f9; color: #cbd5e1; border-color: transparent; cursor: default; }
+        .level-cell.locked:hover { transform: none; border-color: transparent; }
+        .level-cell.locked::after { content: '•'; font-size: 1.2rem; }
+        .level-cell.current { border: 2px solid var(--primary); color: var(--primary); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15); z-index: 2; }
+        .level-cell.completed { border-color: transparent; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .level-cell.completed.bronze { background-color: var(--bronze); }
+        .level-cell.completed.silver { background-color: var(--silver); }
+        .level-cell.completed.gold   { background-color: var(--gold); color: #92400e; }
+
+        /* --- VISTA 3: JOC --- */
+        #view-game { padding: 0; justify-content: flex-start; background: var(--surface); }
+        .game-top-bar {
+            width: 100%; height: 60px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; border-bottom: 1px solid var(--bg); z-index: 60; position: relative; background: var(--surface);
+        }
+        .nav-icon-btn {
+            background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 8px; border-radius: 8px;
+            transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .nav-icon-btn:hover { background: var(--bg); color: var(--text-main); }
+        .nav-icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .level-title { font-size: 1rem; font-weight: 700; color: var(--text-main); }
+        
+        #score-container {
+            width: 100%; max-width: 800px; flex-grow: 1; display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        #notation { display: block; margin: 0 auto; position: relative; }
+        #notation svg { width: 100%; height: auto; display: block; }
+        #cursor {
+            position: absolute; top: 20px; height: 160px; width: 2px;
+            background-color: var(--danger); left: 0; display: none; z-index: 10; pointer-events: none;
+        }
+        .vf-stavenote.highlight path { fill: var(--highlight) !important; stroke: var(--highlight) !important; }
+        
+        .controls-area {
+            width: 100%; padding: 30px 20px; background: var(--surface);
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+        }
+        .btn-play-big {
+            width: 80px; height: 80px; border-radius: 50%; background: var(--primary); border: none; color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.1s;
+        }
+        .btn-play-big:active { transform: scale(0.95); }
+        .btn-play-big:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
+        .btn-play-big svg { width: 32px; height: 32px; fill: white; margin-left: 4px; }
+        .toggle-compact { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; user-select: none; }
+        .toggle-switch { position: relative; width: 44px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-switch input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1; border-radius: 34px; transition: .2s; border: 1px solid #94a3b8;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px;
+            background-color: white; transition: .2s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider { background-color: var(--primary); border-color: var(--primary-dark); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        #status-text { height: 20px; font-size: 0.9rem; font-weight: 600; color: var(--primary); }
+
+        /* --- POPUPS --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(5px); display: none;
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content { text-align: center; width: 90%; max-width: 400px; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .score-circle {
+            width: 140px; height: 140px; border-radius: 50%; border: 8px solid var(--border);
+            display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 800;
+            margin: 0 auto 1.5rem auto; background: white; position: relative; color: var(--text-main);
+        }
+        .score-circle.gold { border-color: var(--gold); color: var(--gold); }
+        .score-circle.silver { border-color: var(--silver); color: var(--silver); }
+        .score-circle.bronze { border-color: var(--bronze); color: var(--bronze); }
+        .score-circle.fail { border-color: var(--danger); color: var(--danger); }
+        .result-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-main); }
+        .result-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 2rem; font-family: monospace; }
+        .actions-row { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .action-btn {
+            width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--border); background: white;
+            color: var(--text-muted); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .action-btn:hover { border-color: var(--text-main); color: var(--text-main); transform: translateY(-2px); }
+        .main-action-btn {
+            background: var(--text-main); color: white; border: none; padding: 1rem 2rem; border-radius: 30px;
+            font-weight: 600; cursor: pointer; width: 100%; transition: transform 0.1s;
+        }
+        .main-action-btn:hover { background: black; }
+        .main-action-btn:active { transform: scale(0.98); }
+        
+        #interaction-area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; display: none; cursor: pointer; }
+        .flash { animation: flashAnim 0.1s ease-out; }
+        @keyframes flashAnim { 0% { background-color: rgba(37, 99, 235, 0.1); } 100% { background-color: transparent; } }
+        #countdown {
+            position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 10rem; font-weight: 800; color: var(--text-main); opacity: 0; pointer-events: none; z-index: 60;
+        }
+        .pop-in { animation: popInAnim 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popInAnim { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } }
+
+        #review-canvas { width: 100%; height: 200px; background: #f8fafc; border-radius: 8px; margin: 1rem 0; }
+        .legend { display: flex; justify-content: center; gap: 1rem; font-size: 0.8rem; color: var(--text-muted); }
+        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .dot.black { background: var(--text-main); } .dot.red { background: var(--danger); }
+        .close-corner { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 1.5rem; color: var(--text-muted); }
+        .simple-modal { text-align: left; padding: 20px; }
+        .simple-modal h2 { margin-top: 0; }
+        .simple-modal p { margin-bottom: 10px; font-size: 0.95rem; }
+
+    </style>
+</head>
+<body>
+
+    <!-- VISTA 1: CALIBRATGE -->
+    <div id="view-calibration" class="view-section">
+        <!-- Language Selector -->
+        <div id="lang-selector">
+            <div class="lang-flag" onclick="setLanguage('ca')" title="Català">
+                <svg viewBox="0 0 60 40" preserveAspectRatio="xMidYMid slice"><rect width="60" height="40" fill="#F1BF00"/><rect y="5" width="60" height="4" fill="#DA121A"/><rect y="13" width="60" height="4" fill="#DA121A"/><rect y="21" width="60" height="4" fill="#DA121A"/><rect y="29" width="60" height="4" fill="#DA121A"/></svg>
+            </div>
+            <div class="lang-flag" onclick="setLanguage('es')" title="Castellano">
+                <svg viewBox="0 0 60 40" preserveAspectRatio="xMidYMid slice"><rect width="60" height="40" fill="#AA151B"/><rect y="10" width="60" height="20" fill="#F1BF00"/></svg>
+            </div>
+            <div class="lang-flag" onclick="setLanguage('en')" title="English">
+                <svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="white" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="2"/><path d="M30,0 L30,30 M0,15 L60,15" stroke="white" stroke-width="10"/><path d="M30,0 L30,30 M0,15 L60,15" stroke="#C8102E" stroke-width="6"/></svg>
+            </div>
+        </div>
+
+        <img src="https://raw.githubusercontent.com/adriahf/titita/refs/heads/main/logo.png" alt="Titità Logo" class="app-logo">
+        <h1 data-i18n="sync_title"></h1>
+        <p class="mb-4" data-i18n="sync_desc"></p>
+        
+        <button id="btn-start-calibration-initial" class="main-action-btn" style="max-width: 200px;"><span data-i18n="btn_start_calib"></span></button>
+        <div id="calib-status" class="mt-4" style="height: 20px; font-weight: 600; color: var(--primary);"></div>
+    </div>
+
+    <!-- VISTA 2: MENÚ -->
+    <div id="view-menu" class="view-section hidden">
+        <div class="menu-header">
+            <div class="menu-title">
+                <h1 data-i18n="app_title"></h1>
+            </div>
+            
+            <button id="btn-recalibrate-menu" class="btn-calibrate-menu" title="Recalibrar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <span id="calib-label-text" data-i18n="btn_calibrate"></span>
+            </button>
+        </div>
+
+        <button id="btn-daily-challenge" class="btn-daily">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span data-i18n="btn_daily"></span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        
+        <button id="btn-random-mode" class="btn-random">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            <span data-i18n="btn_random"></span>
+        </button>
+
+        <div id="levels-grid" class="level-grid"></div>
+    </div>
+
+    <!-- VISTA 3: JOC -->
+    <div id="view-game" class="view-section hidden">
+        <div id="countdown"></div>
+        <div class="game-top-bar">
+            <button id="btn-back-menu" class="nav-icon-btn" title="Menú">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <div class="level-title" id="level-indicator"></div>
+            <button id="btn-help" class="nav-icon-btn" title="Ajuda">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </button>
+        </div>
+        <div id="score-container"><div id="notation"><div id="cursor"></div></div></div>
+        <div class="controls-area controls">
+            <div id="status-text"></div>
+            <button id="btn-play" class="btn-play-big"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></button>
+            <label class="toggle-compact" id="cursor-settings">
+                <div class="toggle-switch"><input type="checkbox" id="cursor-toggle" checked><span class="slider"></span></div>
+                <span data-i18n="visual_guide"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- MODALS & ELEMENTS COMUNS -->
+    <div id="interaction-area"></div>
+    <div id="result-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div id="score-circle-display" class="score-circle"><span id="final-score">0</span></div>
+            <div class="result-title" id="final-grade-text">-</div>
+            <div class="result-subtitle" id="final-stats">...</div>
+            <div class="actions-row">
+                <button id="btn-review" class="action-btn" title="Gràfic"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></button>
+                <button id="btn-listen" class="action-btn" title="Escoltar"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button>
+                <button id="btn-retry" class="action-btn" title="Repetir"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></button>
+            </div>
+            <button id="btn-next-level" class="main-action-btn" style="display:none;"><span data-i18n="btn_next"></span></button>
+            <button id="btn-new-random" class="main-action-btn" style="display:none;"><span data-i18n="btn_new_random"></span></button>
+            <button id="btn-modal-menu" style="background:none; border:none; color:#94a3b8; font-size:0.9rem; margin-top:15px; cursor:pointer;"><span data-i18n="btn_menu_back"></span></button>
+        </div>
+    </div>
+    <div id="review-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 700px; padding-top: 40px;">
+            <div class="close-corner" id="btn-close-review">&times;</div>
+            <h2 style="margin:0 0 10px 0;" data-i18n="analysis_title"></h2>
+            <div class="legend"><div class="legend-item"><div class="dot black"></div> <span data-i18n="legend_target"></span></div><div class="legend-item"><div class="dot red"></div> <span data-i18n="legend_clicks"></span></div></div>
+            <canvas id="review-canvas" width="600" height="200"></canvas>
+        </div>
+    </div>
+    <div id="instructions-modal" class="modal-overlay">
+        <div class="modal-content simple-modal">
+            <div class="close-corner" id="btn-close-instructions">&times;</div>
+            <h2 data-i18n="instr_title"></h2>
+            <p data-i18n="instr_p1"></p>
+            <p data-i18n="instr_p2"></p>
+            <p data-i18n="instr_p3"></p>
+            <p data-i18n="instr_p4"></p>
+            <button id="btn-close-instructions-main" class="main-action-btn" style="margin-top:10px;"><span data-i18n="btn_got_it"></span></button>
+        </div>
+    </div>
+
+    <script>
+        // --- TRANSLATIONS & I18N ---
+        const TRANSLATIONS = {
+            ca: {
+                sync_title: "Sincronització", sync_desc: "Escolta 8 clics i repeteix el ritme per calibrar.", btn_start_calib: "Començar",
+                app_title: "Titità ♫ ♩", btn_calibrate: "Calibrar", btn_daily: "📅 Repte Diari", btn_daily_done: "Diari: {score} (Veure)",
+                btn_random: "Mode Aleatori", level_prefix: "Nivell", level_random: "Aleatori", level_daily: "Repte Diari", visual_guide: "Guia Visual",
+                tap_action: "TOCA!", result_title: "Resultat", grade_perfect: "Perfecte!", grade_pass: "Nivell Superat!", grade_fail: "Segueix practicant",
+                stats_no_click: "Cap clic detectat", stats_deviation: "Desviació: {ms}ms", btn_review: "Gràfic", btn_listen: "Escoltar", btn_retry: "Repetir",
+                btn_next: "Següent Nivell →", btn_new_random: "Nou Ritme →", btn_menu_back: "Tornar al menú",
+                analysis_title: "Anàlisi", legend_target: "Objectiu", legend_clicks: "Clics", btn_back: "Tornar",
+                instr_title: "Com Jugar", instr_p1: "1. Prem el botó blau de <strong>Play</strong>.", instr_p2: "2. Sentiràs 4 clics de compte enrere.",
+                instr_p3: "3. Reprodueix el ritme exacte clicant la pantalla o prement la barra d'espai.", instr_p4: "Aconsegueix <strong>50 punts</strong> per desbloquejar el següent nivell.", btn_got_it: "Entesos", latency_label: "Latència"
+            },
+            es: {
+                sync_title: "Sincronización", sync_desc: "Escucha 8 clics y repite el ritmo para calibrar.", btn_start_calib: "Empezar",
+                app_title: "Titità ♫ ♩", btn_calibrate: "Calibrar", btn_daily: "📅 Reto Diario", btn_daily_done: "Diario: {score} (Ver)",
+                btn_random: "Modo Aleatorio", level_prefix: "Nivel", level_random: "Aleatorio", level_daily: "Reto Diario", visual_guide: "Guía Visual",
+                tap_action: "¡TOCA!", result_title: "Resultado", grade_perfect: "¡Perfecto!", grade_pass: "¡Nivel Superado!", grade_fail: "Sigue practicando",
+                stats_no_click: "Ningún clic detectado", stats_deviation: "Desviación: {ms}ms", btn_review: "Gráfico", btn_listen: "Escuchar", btn_retry: "Repetir",
+                btn_next: "Siguiente Nivel →", btn_new_random: "Nuevo Ritmo →", btn_menu_back: "Volver al menú",
+                analysis_title: "Análisis", legend_target: "Objetivo", legend_clicks: "Clics", btn_back: "Volver",
+                instr_title: "Cómo Jugar", instr_p1: "1. Pulsa el botón azul de <strong>Play</strong>.", instr_p2: "2. Escucharás 4 clics de cuenta atrás.",
+                instr_p3: "3. Reproduce el ritmo exacto haciendo clic en la pantalla o pulsando la barra espaciadora.", instr_p4: "Consigue <strong>50 puntos</strong> para desbloquear el siguiente nivel.", btn_got_it: "Entendido", latency_label: "Latencia"
+            },
+            en: {
+                sync_title: "Synchronization", sync_desc: "Listen to 8 clicks and tap the rhythm to calibrate.", btn_start_calib: "Start",
+                app_title: "Titità ♫ ♩", btn_calibrate: "Calibrate", btn_daily: "📅 Daily Challenge", btn_daily_done: "Daily: {score} (View)",
+                btn_random: "Random Mode", level_prefix: "Level", level_random: "Random", level_daily: "Daily Challenge", visual_guide: "Visual Guide",
+                tap_action: "TAP!", result_title: "Result", grade_perfect: "Perfect!", grade_pass: "Level Cleared!", grade_fail: "Keep practicing",
+                stats_no_click: "No clicks detected", stats_deviation: "Deviation: {ms}ms", btn_review: "Graph", btn_listen: "Listen", btn_retry: "Retry",
+                btn_next: "Next Level →", btn_new_random: "New Rhythm →", btn_menu_back: "Back to menu",
+                analysis_title: "Analysis", legend_target: "Target", legend_clicks: "Clicks", btn_back: "Back",
+                instr_title: "How to Play", instr_p1: "1. Press the blue <strong>Play</strong> button.", instr_p2: "2. You will hear a 4-click countdown.",
+                instr_p3: "3. Play the rhythm by tapping the screen or pressing the spacebar.", instr_p4: "Score <strong>50 points</strong> to unlock the next level.", btn_got_it: "Got it", latency_label: "Latency"
+            }
+        };
+
+        let currentLang = 'en';
+
+        function initLanguage() {
+            const savedLang = localStorage.getItem('rhythm_lang');
+            if (savedLang && TRANSLATIONS[savedLang]) {
+                currentLang = savedLang;
+            } else {
+                const browserLangs = navigator.languages || [navigator.language];
+                if (browserLangs.some(l => l.startsWith('ca'))) currentLang = 'ca';
+                else if (browserLangs.some(l => l.startsWith('es'))) currentLang = 'es';
+                else currentLang = 'en';
+            }
+            updateTexts();
+        }
+
+        function setLanguage(lang) {
+            if (!TRANSLATIONS[lang]) return;
+            currentLang = lang;
+            localStorage.setItem('rhythm_lang', lang);
+            updateTexts();
+        }
+
+        function getTrans(key, params = {}) {
+            let text = TRANSLATIONS[currentLang][key] || key;
+            Object.keys(params).forEach(k => {
+                text = text.replace(`{${k}}`, params[k]);
+            });
+            return text;
+        }
+
+        function updateTexts() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (key) el.innerHTML = getTrans(key);
+            });
+            
+            document.querySelectorAll('.lang-flag').forEach(el => {
+                const lang = el.getAttribute('onclick').match(/'(\w+)'/)[1];
+                el.classList.toggle('active', lang === currentLang);
+            });
+            
+            updateDailyButton();
+            
+            const calibBtnSpan = document.getElementById('calib-label-text');
+            if(calibBtnSpan) {
+                 if(currentCalibrationOffset !== 0) {
+                     calibBtnSpan.innerText = `${getTrans('btn_calibrate')} (${currentCalibrationOffset}ms)`;
+                 } else {
+                     calibBtnSpan.innerText = getTrans('btn_calibrate');
+                 }
+            }
+        }
+
+        // --- CONSTANTS ---
+        const BASE_WIDTH = 700; 
+        const BASE_HEIGHT = 160;
+
+        // --- 0. DAILY MANAGER ---
+        const dailyManager = {
+            getSeed: () => {
+                const now = new Date();
+                return parseInt(`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`);
+            },
+            getKey: () => 'rhythmTrainer_daily',
+            getState: () => {
+                const s = localStorage.getItem(dailyManager.getKey());
+                if (!s) return null;
+                const data = JSON.parse(s);
+                if (data.seed !== dailyManager.getSeed()) return null; 
+                return data;
+            },
+            saveState: (score, medal, errorMs, userT, expectedT) => {
+                const data = {
+                    seed: dailyManager.getSeed(),
+                    played: true, score, medal, errorMs, userTimestamps: userT, expectedTimestamps: expectedT
+                };
+                localStorage.setItem(dailyManager.getKey(), JSON.stringify(data));
+                return data;
+            },
+            generateLevel: () => {
+                const seed = dailyManager.getSeed();
+                let level = { id: 'daily', bpm: 0, rhythm: [] };
+                function dailyRandom(s) { var x = Math.sin(s++) * 10000; return x - Math.floor(x); }
+                let localSeed = seed;
+                level.bpm = 60 + Math.floor(dailyRandom(localSeed++) * 31);
+                
+                const patterns = {
+                    q: { beats: 1, notes: ['q'] }, qr: { beats: 1, notes: ['qr'] },
+                    e8: { beats: 1, notes: ['8', '8'] }, er8: { beats: 1, notes: ['8r', '8'] }, e8r: { beats: 1, notes: ['8', '8r'] },
+                    s16: { beats: 1, notes: ['16', '16', '16', '16'] }, galop: { beats: 1, notes: ['8', '16', '16'] }, galopRev: { beats: 1, notes: ['16', '16', '8'] },
+                    dotQ: { beats: 2, notes: ['qd', '8'] }, sync1: { beats: 2, notes: ['8', 'q', '8'] }, triplet: { beats: 1, notes: ['8t', '8t', '8t'] }
+                };
+                const pool = Object.values(patterns);
+                let currentBeats = 0; let attempt = 0;
+                while(attempt < 100) { 
+                    level.rhythm = []; currentBeats = 0;
+                    while (currentBeats < 8) {
+                        let rand = dailyRandom(localSeed++);
+                        let valid = pool.filter(p => { if (currentBeats + p.beats > 8) return false; if (currentBeats === 3 && p.beats === 2) return false; return true; });
+                        if (valid.length === 0) break; 
+                        let sel = valid[Math.floor(rand * valid.length)];
+                        level.rhythm.push(...sel.notes); currentBeats += sel.beats;
+                    }
+                    if (currentBeats === 8) break; 
+                    attempt++;
+                }
+                return level;
+            }
+        };
+
+        // --- 1. GENERADOR DE NIVELLS (LÒGICA INTACTA) ---
+        function seededRandom(seed) { var x = Math.sin(seed++) * 10000; return x - Math.floor(x); }
+        const LEVELS_DATA = [];
+        function generateLevelsData() {
+            const patterns = {
+                q: { beats: 1, notes: ['q'] }, qr: { beats: 1, notes: ['qr'] },
+                e8: { beats: 1, notes: ['8', '8'] }, er8: { beats: 1, notes: ['8r', '8'] }, e8r: { beats: 1, notes: ['8', '8r'] },
+                s16: { beats: 1, notes: ['16', '16', '16', '16'] }, galop: { beats: 1, notes: ['8', '16', '16'] }, galopRev: { beats: 1, notes: ['16', '16', '8'] },
+                dotQ: { beats: 2, notes: ['qd', '8'] }, sync1: { beats: 2, notes: ['8', 'q', '8'] }, triplet: { beats: 1, notes: ['8t', '8t', '8t'] }
+            };
+            for (let i = 1; i <= 100; i++) {
+                let level = { id: i, bpm: 60, rhythm: [] };
+                let seed = i * 1337; let pool = []; let minNotes = 0;
+                if (i <= 3) { pool = [patterns.q, patterns.qr]; minNotes = 2; } 
+                else if (i <= 8) { pool = [patterns.q, patterns.qr, patterns.e8]; }
+                else if (i <= 13) { pool = [patterns.q, patterns.qr, patterns.e8, patterns.er8, patterns.e8r]; }
+                else if (i <= 28) { pool = [patterns.q, patterns.e8, patterns.er8, patterns.s16, patterns.galop, patterns.galopRev]; }
+                else if (i <= 43) { pool = [patterns.q, patterns.e8, patterns.s16, patterns.dotQ, patterns.sync1]; }
+                else if (i <= 99) { pool = Object.values(patterns); let p = (i - 44) / (99 - 44); level.bpm = 60 + Math.floor(p * 30); }
+                else { level.bpm = 25; level.rhythm = ['q', 'q', 'q', 'q', 'q', 'q', 'q', 'q']; LEVELS_DATA.push(level); continue; }
+                
+                let currentBeats = 0; let attempt = 0;
+                while(attempt < 100) { 
+                    level.rhythm = []; currentBeats = 0; let noteCount = 0; let localSeed = seed + attempt;
+                    while (currentBeats < 8) {
+                        let rand = seededRandom(localSeed++);
+                        let valid = pool.filter(p => { if (currentBeats + p.beats > 8) return false; if (currentBeats === 3 && p.beats === 2) return false; return true; });
+                        if (valid.length === 0) break; 
+                        let sel = valid[Math.floor(rand * valid.length)];
+                        level.rhythm.push(...sel.notes); currentBeats += sel.beats;
+                        sel.notes.forEach(n => { if(!n.includes('r')) noteCount++; });
+                    }
+                    if (i <= 3 && noteCount < minNotes) { attempt++; continue; }
+                    if (currentBeats === 8) break; 
+                    attempt++;
+                }
+                LEVELS_DATA.push(level);
+            }
+        }
+        generateLevelsData();
+
+        // --- 2. GESTIÓ D'ESTAT ---
+        const STORAGE_KEY = 'rhythmTrainer_progress_v1';
+        let gameState = { lastUnlocked: 1, scores: {} };
+        function loadProgress() { const s = localStorage.getItem(STORAGE_KEY); if (s) gameState = JSON.parse(s); }
+        function saveProgress() { localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState)); }
+
+        // --- 3. VARIABLES GLOBALS ---
+        let currentCalibrationOffset = 0; let currentLevelId = null; 
+        let metronomeSynth, demoSynth;
+        let isListening = false; let startTime = 0, currentBeatMs = 0;
+        let expectedTimestamps = [], userTimestamps = [], cursorTimestamps = [];
+        let cursorAnimationFrame = null; let currentRhythm = [], currentVexNotes = [], cursorXMap = [];
+        let isDemoPlaying = false; let gameTimeout = null;
+
+        const views = { calibration: document.getElementById('view-calibration'), menu: document.getElementById('view-menu'), game: document.getElementById('view-game') };
+        const levelsGrid = document.getElementById('levels-grid');
+        const calibStatus = document.getElementById('calib-status');
+        const statusText = document.getElementById('status-text');
+
+        function initSynths() {
+            metronomeSynth = new Tone.MembraneSynth({ pitchDecay: 0.008, octaves: 2, envelope: { attack: 0.001, decay: 0.1, sustain: 0 } }).toDestination();
+            demoSynth = new Tone.PolySynth(Tone.MembraneSynth, { pitchDecay: 0.02, octaves: 3, oscillator: { type: "triangle" }, envelope: { attack: 0.001, decay: 0.2, sustain: 0 } }).toDestination();
+        }
+
+        // --- 8. PREFERÈNCIES D'USUARI (GUIA VISUAL) ---
+        const cursorToggle = document.getElementById('cursor-toggle');
+        const VISUAL_KEY = 'rhythm_visual_guide';
+
+        // Carregar preferència
+        const savedGuide = localStorage.getItem(VISUAL_KEY);
+        if (savedGuide !== null) {
+            cursorToggle.checked = (savedGuide === 'true');
+        }
+
+        // Guardar preferència
+        cursorToggle.addEventListener('change', (e) => {
+            localStorage.setItem(VISUAL_KEY, e.target.checked);
+        });
+
+        function switchView(viewName) {
+            Object.values(views).forEach(el => el.classList.add('hidden'));
+            views[viewName].classList.remove('hidden');
+            if(viewName === 'calibration') {
+                document.getElementById('btn-start-calibration-initial').disabled = false;
+                document.getElementById('calib-status').innerText = "";
+            }
+            if (viewName === 'menu') renderMenu();
+        }
+
+        // --- 5. LÒGICA CALIBRATGE ---
+        document.getElementById('btn-start-calibration-initial').addEventListener('click', async () => {
+            await Tone.start();
+            document.getElementById('btn-start-calibration-initial').disabled = true;
+            runCalibrationSequence(true); 
+        });
+        document.getElementById('btn-recalibrate-menu').addEventListener('click', () => switchView('calibration'));
+
+        async function runCalibrationSequence(isInitial = false) {
+            initSynths();
+            calibStatus.innerText = getTrans('btn_listen'); 
+            const beatMs = 500; currentBeatMs = beatMs;
+            userTimestamps = []; expectedTimestamps = [];
+            let t = 0; for(let i=0;i<8;i++) { expectedTimestamps.push(t); t+=beatMs; }
+            const now = Tone.now() + 0.5;
+            const beatSec = beatMs / 1000;
+            // Define startTime explicitly for the 8th beat
+            startTime = now + 8 * beatSec;
+
+            Tone.Transport.stop();
+            Tone.Transport.cancel();
+
+            for(let i=0; i<16; i++) {
+                const time = now + i * beatSec;
+                if(i < 8) metronomeSynth.triggerAttackRelease("C5", "32n", time);
+                if(i >= 8) demoSynth.triggerAttackRelease("G4", "32n", time);
+                
+                if(i===0) Tone.Draw.schedule(() => calibStatus.innerText = getTrans('btn_listen') + "...", time);
+                
+                // Activate listeners EARLY (Beat 7)
+                if(i===7) {
+                    Tone.Draw.schedule(() => {
+                        document.addEventListener('pointerdown', handleCalibrationTap);
+                        document.addEventListener('keydown', handleCalibrationTapKey);
+                    }, time);
+                }
+
+                // Visual signal exactly on Beat 8
+                if(i===8) {
+                    Tone.Draw.schedule(() => {
+                        calibStatus.innerText = getTrans('tap_action');
+                        // startTime is already set outside
+                    }, time);
+                }
+            }
+            Tone.Transport.start();
+            setTimeout(() => {
+                document.removeEventListener('pointerdown', handleCalibrationTap);
+                document.removeEventListener('keydown', handleCalibrationTapKey);
+                finishCalibration(isInitial);
+            }, (16.5 * beatMs) + 500);
+        }
+        function handleCalibrationTap(e) { e.preventDefault(); recordCalibrationTap(); }
+        function handleCalibrationTapKey(e) { if(e.code === 'Space') { e.preventDefault(); recordCalibrationTap(); } }
+        function recordCalibrationTap() {
+            const tapTime = (Tone.now() - startTime) * 1000;
+            userTimestamps.push(tapTime);
+            calibStatus.style.transform = "scale(1.2)"; setTimeout(()=>calibStatus.style.transform = "scale(1)", 50);
+        }
+        function finishCalibration(isInitial) {
+            Tone.Transport.stop();
+            if (userTimestamps.length > 0) {
+                let totalDiff = 0; let count = 0;
+                expectedTimestamps.forEach((exp, i) => { if (userTimestamps[i]) { let diff = userTimestamps[i] - exp; if(Math.abs(diff) < 600) { totalDiff += diff; count++; } } });
+                currentCalibrationOffset = count > 0 ? Math.round(totalDiff / count) : 0;
+                if (currentCalibrationOffset < 0) currentCalibrationOffset += 500;
+            } else currentCalibrationOffset = 0;
+            
+            // Actualitzar text del botó al menú
+            document.getElementById('btn-recalibrate-menu').innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <span>${getTrans('btn_calibrate')} (${currentCalibrationOffset}ms)</span>
+            `;
+            switchView('menu');
+        }
+
+        // --- 6. RENDERITZAT DEL MENÚ ---
+        function renderMenu() {
+            levelsGrid.innerHTML = '';
+            LEVELS_DATA.forEach(level => {
+                const cell = document.createElement('div');
+                cell.className = 'level-cell';
+                
+                if (level.id > gameState.lastUnlocked) {
+                    cell.classList.add('locked');
+                } else {
+                    cell.innerText = level.id; // Show number
+                    if (level.id === gameState.lastUnlocked) cell.classList.add('current');
+                    const scoreType = gameState.scores[level.id];
+                    if (scoreType) {
+                        cell.classList.add('completed', scoreType);
+                        cell.innerHTML = ''; // Remove number
+                        const medal = document.createElement('div');
+                        medal.className = `medal-dot`; // Inner color circle
+                        medal.innerText = level.id; // Number inside circle
+                        cell.appendChild(medal);
+                    }
+                    cell.onclick = () => launchLevel(level.id);
+                }
+                levelsGrid.appendChild(cell);
+            });
+            updateDailyButton();
+        }
+
+        function updateDailyButton() {
+            const btn = document.getElementById('btn-daily-challenge');
+            const state = dailyManager.getState();
+            // Default styling
+            btn.className = 'btn-daily';
+            let content = `<div style="display:flex; align-items:center; gap:10px;"><span>${getTrans('btn_daily')}</span></div>`;
+            
+            if (state && state.played) {
+                btn.classList.add('completed', state.medal || 'fail');
+                const doneText = getTrans('btn_daily_done', {score: state.score});
+                content = `<div style="display:flex; align-items:center; gap:10px;"><span>${doneText}</span></div>`;
+                btn.onclick = () => launchLevel('daily');
+            } else {
+                btn.onclick = () => launchLevel('daily');
+            }
+            // Add Arrow icon
+            content += `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+            btn.innerHTML = content;
+        }
+
+        // --- 7. MOTOR DE JOC ---
+        function launchLevel(id) {
+            currentLevelId = id;
+            
+            // Logic for Visual Guide Visibility
+            const cursorSettings = document.getElementById('cursor-settings');
+            if (id === 'daily') {
+                cursorSettings.style.display = 'none';
+            } else {
+                cursorSettings.style.display = 'flex';
+            }
+            
+            if (id === 'daily') {
+                const state = dailyManager.getState();
+                const dailyLevel = dailyManager.generateLevel();
+                
+                if (state && state.played) {
+                    // REVIEW MODE
+                    resetGame(dailyLevel); // Prepare visual but don't show game view yet
+                    
+                    // Manually inject results
+                    userTimestamps = state.userTimestamps || [];
+                    expectedTimestamps = state.expectedTimestamps || [];
+                    
+                    // Directly show modal
+                    showModal(state.score, state.errorMs, state.medal);
+                    // Hide retry button for daily review
+                    document.getElementById('btn-retry').style.display = 'none';
+                    return;
+                } else {
+                    // PLAY MODE
+                    document.getElementById('level-indicator').innerText = getTrans('level_daily');
+                    document.getElementById('btn-next-level').style.display = 'none'; 
+                    document.getElementById('btn-new-random').style.display = 'none';
+                    switchView('game');
+                    requestAnimationFrame(() => resetGame(dailyLevel));
+                    return;
+                }
+            }
+
+            // Normal Levels
+            const levelConfig = LEVELS_DATA[id-1];
+            document.getElementById('level-indicator').innerText = `${getTrans('level_prefix')} ${id}`;
+            document.getElementById('btn-next-level').style.display = 'none'; 
+            document.getElementById('btn-new-random').style.display = 'none';
+            switchView('game');
+            requestAnimationFrame(() => resetGame(levelConfig));
+        }
+
+        document.getElementById('btn-random-mode').onclick = () => {
+            currentLevelId = null;
+            document.getElementById('level-indicator').innerText = getTrans('level_random');
+            document.getElementById('btn-next-level').style.display = 'none';
+            document.getElementById('btn-new-random').style.display = 'block'; 
+            
+            // Ensure toggle is visible for random
+            document.getElementById('cursor-settings').style.display = 'flex';
+            
+            switchView('game');
+            requestAnimationFrame(() => resetGame(null));
+        };
+
+        function resetGame(config = null) {
+            Tone.Transport.stop(); Tone.Transport.cancel();
+            if(cursorAnimationFrame) cancelAnimationFrame(cursorAnimationFrame);
+            if(gameTimeout) clearTimeout(gameTimeout);
+            
+            document.getElementById('countdown').innerText = "";
+            document.getElementById('cursor').style.display = 'none';
+            document.getElementById('result-modal').style.display = 'none';
+            document.getElementById('review-modal').style.display = 'none';
+            isListening = false;
+            document.getElementById('interaction-area').style.display = 'none';
+            
+            const controlsEl = document.querySelector('.controls');
+            controlsEl.style.visibility = 'visible'; controlsEl.style.pointerEvents = 'auto'; controlsEl.style.opacity = '1';
+            document.getElementById('btn-back-menu').disabled = false;
+            document.getElementById('btn-help').disabled = false;
+            document.getElementById('cursor-toggle').disabled = false;
+            
+            if (config) { currentRhythm = config.rhythm; currentBeatMs = (60 / config.bpm) * 1000; }
+            else { 
+                currentRhythm = generateRandomRhythmForPlay(); 
+                // Canvi: BPM aleatori entre 60 i 90
+                const randomBpm = 60 + Math.floor(Math.random() * 31);
+                currentBeatMs = (60 / randomBpm) * 1000; 
+            }
+
+            const bpmToDisplay = Math.round(60000 / currentBeatMs);
+            drawScore(currentRhythm, bpmToDisplay);
+            
+            expectedTimestamps = calculateExpectedTimestamps(currentRhythm, currentBeatMs);
+            cursorTimestamps = calculateCursorTimestamps(currentRhythm, currentBeatMs);
+            
+            statusText.innerText = "";
+            document.getElementById('btn-play').disabled = false;
+        }
+
+        function generateRandomRhythmForPlay() {
+            const allPatterns = [ ['q'], ['8','8'], ['8r','8'], ['16','16','16','16'], ['8t','8t','8t'] ];
+            let r = []; let beats = 0;
+            while(beats < 8) { let p = allPatterns[Math.floor(Math.random()*allPatterns.length)]; r.push(...p); beats += 1; }
+            return r;
+        }
+
+        document.getElementById('btn-play').onclick = async () => {
+            await Tone.start();
+            document.getElementById('btn-play').disabled = true;
+            startGameSequence();
+        };
+
+        function startGameSequence() {
+            document.getElementById('btn-back-menu').disabled = true;
+            document.getElementById('btn-help').disabled = true;
+            document.getElementById('cursor-toggle').disabled = true;
+
+            userTimestamps = []; isListening = false;
+            const now = Tone.now() + 0.1; const beatSec = currentBeatMs / 1000;
+            
+            for(let i=0; i<12; i++) {
+                const t = now + i * beatSec;
+                metronomeSynth.triggerAttackRelease("C5", "32n", t);
+                if (i < 4) setTimeout(() => showCountdown(4-i), (t - now)*1000);
+            }
+
+            startTime = now + (4 * beatSec);
+            // Only animate cursor if not daily challenge
+            if (document.getElementById('cursor-toggle').checked && currentLevelId !== 'daily') {
+                cursorAnimationFrame = requestAnimationFrame(animateCursor);
+            }
+
+            setTimeout(() => {
+                isListening = true;
+                statusText.innerText = getTrans('tap_action');
+                document.getElementById('interaction-area').style.display = 'block';
+            }, (3.8 * currentBeatMs) + 100);
+
+            gameTimeout = setTimeout(() => finishGame(), (12.5 * currentBeatMs) + 100);
+        }
+
+        function handleGameTap() {
+            if (!isListening) return;
+            const t = (Tone.now() - startTime) * 1000; userTimestamps.push(t);
+            document.body.classList.remove('flash'); void document.body.offsetWidth; document.body.classList.add('flash');
+        }
+
+        const area = document.getElementById('interaction-area');
+        area.addEventListener('pointerdown', (e) => { e.preventDefault(); handleGameTap(); });
+        document.addEventListener('keydown', (e) => { if (e.code === 'Space' && isListening) { e.preventDefault(); handleGameTap(); } });
+
+        function finishGame() {
+            isListening = false;
+            if(cursorAnimationFrame) cancelAnimationFrame(cursorAnimationFrame);
+            document.getElementById('cursor').style.display = 'none';
+            document.getElementById('interaction-area').style.display = 'none';
+            document.getElementById('btn-back-menu').disabled = false;
+            document.getElementById('btn-help').disabled = false;
+            document.getElementById('cursor-toggle').disabled = false;
+            calculateResult();
+        }
+
+        function animateCursor() {
+            if (!startTime) return;
+            const now = Tone.now(); const offset = isDemoPlaying ? 0 : currentCalibrationOffset;
+            const elapsedTimeMs = (now - startTime) * 1000 - offset;
+
+            if (elapsedTimeMs < 0) {
+                // FALLBACK TO FIRST NOTE OF CURSOR MAP (index 0)
+                const startX = cursorXMap[0] ? cursorXMap[0] : 50; 
+                
+                const cursor = document.getElementById('cursor');
+                // Calc Scale
+                const notationDiv = document.getElementById('notation');
+                const scale = notationDiv.clientWidth / BASE_WIDTH;
+                
+                cursor.style.display = 'block'; 
+                cursor.style.left = (startX * scale) + 'px'; 
+                
+                cursorAnimationFrame = requestAnimationFrame(animateCursor); return;
+            }
+            let currentNoteIndex = -1;
+            for (let i = 0; i < cursorTimestamps.length; i++) { if (elapsedTimeMs >= cursorTimestamps[i]) { currentNoteIndex = i; } else { break; } }
+            
+            let currentX = 0;
+            // Helper to get robust X position (fallback to map if needed)
+            const getX = (idx) => {
+                if (idx >= cursorXMap.length) return cursorXMap[cursorXMap.length - 1]; // End of score
+                // We use cursorXMap which now uses getAbsoluteX(), usually correct for bar traversal
+                return cursorXMap[idx];
+            };
+
+            if (currentNoteIndex === -1) currentX = getX(0); // Safety start
+            else if (currentNoteIndex >= cursorTimestamps.length - 1) {
+                const tStart = cursorTimestamps[cursorTimestamps.length - 1]; 
+                const xStart = getX(cursorTimestamps.length - 1); 
+                // Extrapolate to end of stave2
+                const xEnd = cursorXMap[cursorXMap.length - 1]; 
+                const progress = Math.min(1, (elapsedTimeMs - tStart) / 500); 
+                currentX = xStart + (xEnd - xStart) * progress;
+            } else {
+                const tStart = cursorTimestamps[currentNoteIndex]; 
+                const tEnd = cursorTimestamps[currentNoteIndex + 1]; 
+                const xStart = getX(currentNoteIndex); 
+                const xEnd = getX(currentNoteIndex + 1);
+                const progress = (elapsedTimeMs - tStart) / (tEnd - tStart); 
+                currentX = xStart + (xEnd - xStart) * progress;
+            }
+            
+            const cursor = document.getElementById('cursor');
+            const notationDiv = document.getElementById('notation');
+            const scale = notationDiv.clientWidth / BASE_WIDTH;
+
+            cursor.style.display = 'block'; 
+            cursor.style.left = (currentX * scale) + 'px';
+            
+            if (elapsedTimeMs < (cursorTimestamps[cursorTimestamps.length-1] + 1000)) cursorAnimationFrame = requestAnimationFrame(animateCursor);
+            else document.getElementById('cursor').style.display = 'none';
+        }
+
+        function calculateResult() {
+            let validChecks = 0, totalError = 0;
+            if(expectedTimestamps.length>0 && userTimestamps.length===0) { showModal(0, "F"); return; }
+            expectedTimestamps.forEach((exp, i) => {
+                if (userTimestamps[i] !== undefined) { let diff = Math.abs((userTimestamps[i] - currentCalibrationOffset) - exp); totalError += diff; validChecks++; }
+                else { totalError += 250; validChecks++; }
+            });
+            if (userTimestamps.length > expectedTimestamps.length) totalError += (userTimestamps.length - expectedTimestamps.length) * 100;
+            
+            let avgError = validChecks > 0 ? totalError / validChecks : 250;
+            let score = 0;
+            if (avgError <= 15) score = 100; else if (avgError >= 200) score = 0; else score = Math.round(100 - ((avgError - 15) / 185 * 100));
+
+            let medal = null; if (score >= 95) medal = 'gold'; else if (score >= 80) medal = 'silver'; else if (score >= 50) medal = 'bronze'; else medal = 'fail';
+            
+            let passed = score >= 50;
+            
+            // --- SAVE LOGIC ---
+            if (currentLevelId === 'daily') {
+                dailyManager.saveState(score, medal, Math.round(avgError), userTimestamps, expectedTimestamps);
+                document.getElementById('btn-retry').style.display = 'none'; // No retry for daily
+            } else {
+                // Show retry for normal levels
+                document.getElementById('btn-retry').style.display = 'flex';
+                
+                if (currentLevelId !== null && passed) {
+                    const oldScore = gameState.scores[currentLevelId];
+                    const medalsOrder = { 'gold': 3, 'silver': 2, 'bronze': 1, 'fail': 0 };
+                    if ((medalsOrder[medal] || 0) > (medalsOrder[oldScore] || 0)) gameState.scores[currentLevelId] = medal;
+                    if (currentLevelId === gameState.lastUnlocked && gameState.lastUnlocked < 100) gameState.lastUnlocked++;
+                    saveProgress();
+                }
+            }
+
+            showModal(score, Math.round(avgError), medal);
+        }
+
+        function showModal(score, errorMs, medal) {
+            document.getElementById('result-modal').style.display = 'flex';
+            document.getElementById('final-score').innerText = score;
+            const circle = document.getElementById('score-circle-display');
+            circle.className = 'score-circle ' + (medal || 'fail');
+            
+            let text = score >= 50 ? getTrans('grade_pass') : getTrans('grade_fail');
+            if (score === 100) text = getTrans('grade_perfect');
+            document.getElementById('final-grade-text').innerText = text;
+            
+            if (errorMs === "F") document.getElementById('final-stats').innerText = getTrans('stats_no_click');
+            else document.getElementById('final-stats').innerText = getTrans('stats_deviation', {ms: errorMs});
+
+            const passed = score >= 50;
+            const isCampaign = (currentLevelId !== null && currentLevelId !== 'daily');
+            
+            document.getElementById('btn-next-level').style.display = (isCampaign && passed) ? 'block' : 'none';
+            document.getElementById('btn-next-level').onclick = () => { document.getElementById('result-modal').style.display = 'none'; launchLevel(currentLevelId + 1); };
+            
+            const isRandom = currentLevelId === null;
+            document.getElementById('btn-new-random').style.display = isRandom ? 'block' : 'none';
+            document.getElementById('btn-new-random').onclick = () => { document.getElementById('result-modal').style.display = 'none'; resetGame(null); };
+        }
+
+        // --- DRAW SCORE ROBUST ---
+        function drawScore(rhythm, bpm) { // Accepted BPM
+            document.getElementById('notation').innerHTML = '<div id="cursor"></div>';
+            const VF = Vex.Flow; const div = document.getElementById('notation');
+            // Force 700px internal width, scaled by CSS viewBox
+            const baseW = BASE_WIDTH; const baseH = BASE_HEIGHT;
+            const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG); 
+            renderer.resize(baseW, baseH);
+            const context = renderer.getContext();
+            
+            // Adjust SVG for responsiveness
+            const svg = div.querySelector('svg');
+            if(svg) { svg.setAttribute("viewBox", `0 0 ${baseW} ${baseH}`); svg.style.width="100%"; svg.style.height="auto"; }
+
+            const stave1Width = (baseW / 2) - 10;
+            const stave1 = new VF.Stave(10, 40, stave1Width); 
+            stave1.addClef("treble").addTimeSignature("4/4"); 
+            
+            // Add Tempo marking if bpm is provided
+            if (bpm) {
+                stave1.setTempo({ duration: 'q', dots: 0, bpm: bpm }, 0);
+            }
+            
+            stave1.setContext(context).draw();
+            
+            const stave2 = new VF.Stave(10 + stave1Width, 40, stave1Width); stave2.setContext(context).draw();
+
+            let notes1 = [], notes2 = []; let animNotes = [], tuplets = []; let currentBeat = 0, currentTriplet = [];
+            rhythm.forEach(n => {
+                let dur = n.replace('r','r').replace('t','').replace('d','d');
+                if(n.includes('d') && !dur.includes('d')) dur += 'd';
+                let isRest = n.includes('r'), isTriplet = n.includes('t'), isDot = n.includes('d');
+                let beatVal = 1; if (n.includes('8')) beatVal = 0.5; if (n.includes('16')) beatVal = 0.25; if (isTriplet) beatVal = 1/3; if (isDot && n.includes('q')) beatVal = 1.5;
+                let vfNote = new VF.StaveNote({ clef: "treble", keys: isRest ? ["b/4"] : ["c/5"], duration: dur });
+                if(isDot) vfNote.addDotToAll();
+                if (isTriplet) { currentTriplet.push(vfNote); if(currentTriplet.length === 3) { tuplets.push(new VF.Tuplet(currentTriplet)); currentTriplet = []; } }
+                if (currentBeat < 4) notes1.push(vfNote); else notes2.push(vfNote);
+                animNotes.push(vfNote); currentBeat += beatVal;
+            });
+
+            const beams1 = VF.Beam.generateBeams(notes1); const beams2 = VF.Beam.generateBeams(notes2);
+            if(notes1.length) VF.Formatter.FormatAndDraw(context, stave1, notes1);
+            if(notes2.length) VF.Formatter.FormatAndDraw(context, stave2, notes2);
+            beams1.forEach(b => b.setContext(context).draw()); beams2.forEach(b => b.setContext(context).draw()); tuplets.forEach(t => t.setContext(context).draw());
+            const connector = new VF.StaveConnector(stave1, stave2); connector.setType(VF.StaveConnector.type.SINGLE); connector.setContext(context).draw();
+            
+            currentVexNotes = animNotes; 
+            cursorXMap = animNotes.map(n => n.getAbsoluteX()); 
+            cursorXMap.push(stave2.getX() + stave2.getWidth());
+        }
+
+        function getDurationTicks(n) { if(n.includes('q')) return n.includes('d') ? 18 : 12; if(n.includes('8')) return n.includes('t') ? 4 : 6; if(n.includes('16')) return 3; return 12; }
+        function calculateExpectedTimestamps(rhythm, beatMs) { let res = []; let t = 0; rhythm.forEach(n => { let ratio = getDurationTicks(n)/12.0; let dur = beatMs*ratio; if (!n.includes('r')) res.push(t); t += dur; }); return res; }
+        function calculateCursorTimestamps(rhythm, beatMs) { let res = []; let t = 0; rhythm.forEach(n => { res.push(t); let ratio = getDurationTicks(n)/12.0; let dur = beatMs*ratio; t += dur; }); return res; }
+
+        document.getElementById('btn-back-menu').onclick = () => { 
+            Tone.Transport.stop(); Tone.Transport.cancel();
+            if(cursorAnimationFrame) cancelAnimationFrame(cursorAnimationFrame); if(gameTimeout) clearTimeout(gameTimeout);
+            document.getElementById('cursor').style.display = 'none'; isListening = false; switchView('menu');
+        };
+        document.getElementById('btn-modal-menu').onclick = () => { document.getElementById('result-modal').style.display = 'none'; switchView('menu'); };
+        document.getElementById('btn-help').onclick = () => document.getElementById('instructions-modal').style.display = 'flex';
+        document.getElementById('btn-close-instructions').onclick = () => document.getElementById('instructions-modal').style.display = 'none';
+        document.getElementById('btn-close-instructions-main').onclick = () => document.getElementById('instructions-modal').style.display = 'none';
+        
+        document.getElementById('btn-review').onclick = () => {
+            const canvas = document.getElementById('review-canvas'); const ctx = canvas.getContext('2d'); const w = canvas.width, h = canvas.height;
+            ctx.clearRect(0,0,w,h); ctx.fillStyle = '#f8fafc'; ctx.fillRect(0,0,w,h);
+            const maxTime = (expectedTimestamps[expectedTimestamps.length-1] || 0) + 1500; const scaleX = (val) => (val / maxTime) * (w - 40) + 20;
+            ctx.strokeStyle='#ccc'; ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke();
+            ctx.strokeStyle='black'; ctx.lineWidth=2; expectedTimestamps.forEach(t => { let x = scaleX(t); ctx.beginPath(); ctx.moveTo(x, 20); ctx.lineTo(x, h/2); ctx.stroke(); });
+            ctx.strokeStyle='#ef4444'; userTimestamps.forEach(t => { let tc = t - currentCalibrationOffset; let x = scaleX(tc); if (x > 0) { ctx.beginPath(); ctx.moveTo(x, h/2); ctx.lineTo(x, h-20); ctx.stroke(); }});
+            document.getElementById('review-modal').style.display = 'flex';
+        };
+        document.getElementById('btn-close-review').onclick = () => document.getElementById('review-modal').style.display='none';
+        
+        async function playDemo() {
+            const controlsEl = document.querySelector('.controls');
+            controlsEl.style.transition = 'none'; controlsEl.style.visibility = 'hidden'; controlsEl.style.opacity = '0'; controlsEl.style.pointerEvents = 'none';
+            document.getElementById('result-modal').style.display = 'none'; 
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await Tone.start();
+            isDemoPlaying = true; 
+            const now = Tone.now() + 0.5; const beatSec = currentBeatMs / 1000;
+            for(let i=0; i<12; i++) metronomeSynth.triggerAttackRelease("C5", "32n", now + i*beatSec);
+            let tCursor = 0;
+            currentRhythm.forEach((n, i) => {
+                let ratio = getDurationTicks(n) / 12.0; let dur = beatSec * ratio;
+                if(!n.includes('r')) {
+                    demoSynth.triggerAttackRelease("G4", "32n", now + (4*beatSec) + tCursor);
+                    Tone.Draw.schedule(() => { if (currentVexNotes[i]) { const group = currentVexNotes[i].attrs.el; const paths = group.querySelectorAll('path'); paths.forEach(p => { const fill = p.getAttribute('fill'); const stroke = p.getAttribute('stroke'); if (fill && fill !== 'none') p.style.fill = '#f97316'; if (stroke && stroke !== 'none') p.style.stroke = '#f97316'; }); } }, now + (4*beatSec) + tCursor);
+                    Tone.Draw.schedule(() => { if (currentVexNotes[i]) { const group = currentVexNotes[i].attrs.el; const paths = group.querySelectorAll('path'); paths.forEach(p => { p.style.fill = ''; p.style.stroke = ''; }); } }, now + (4*beatSec) + tCursor + (dur/1000) - 0.05); 
+                }
+                tCursor += dur;
+            });
+            startTime = now + (4 * beatSec);
+            
+            // Only allow cursor animation if NOT daily AND checked
+            if (document.getElementById('cursor-toggle').checked && currentLevelId !== 'daily') {
+                cursorAnimationFrame = requestAnimationFrame(animateCursor);
+            }
+            
+            setTimeout(() => {
+                document.getElementById('result-modal').style.display='flex';
+                currentVexNotes.forEach(n => { const paths = n.attrs.el.querySelectorAll('path'); paths.forEach(p => { p.style.fill = ''; p.style.stroke = ''; }); });
+                controlsEl.style.visibility = 'visible'; controlsEl.style.opacity = '1'; controlsEl.style.pointerEvents = 'auto';
+                isDemoPlaying = false; if(cursorAnimationFrame) cancelAnimationFrame(cursorAnimationFrame); document.getElementById('cursor').style.display = 'none';
+            }, (12.5 * currentBeatMs));
+        }
+        document.getElementById('btn-listen').onclick = () => playDemo();
+        document.getElementById('btn-retry').onclick = () => { 
+            document.getElementById('result-modal').style.display = 'none';
+            Tone.Transport.stop(); Tone.Transport.cancel(); if(cursorAnimationFrame) cancelAnimationFrame(cursorAnimationFrame); document.getElementById('cursor').style.display = 'none';
+            document.getElementById('btn-play').disabled = false; document.getElementById('status-text').innerText = "";
+            if(currentVexNotes) { currentVexNotes.forEach(n => { const paths = n.attrs.el.querySelectorAll('path'); paths.forEach(p => { p.style.fill = ''; p.style.stroke = ''; }); }); }
+        };
+        function showCountdown(n) { const el = document.getElementById('countdown'); el.innerText = n; el.classList.remove('pop-in'); void el.offsetWidth; el.classList.add('pop-in'); }
+
+        // Start App
+        initLanguage();
+        loadProgress();
+
+    </script>
+</body>
+</html>
