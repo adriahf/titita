@@ -42,6 +42,27 @@
             margin: 0;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            overflow: hidden; /* Evitar scrollbars per les animacions */
+        }
+
+        /* --- NOUS ESTILS RIPPLE (Clic Efecte) --- */
+        .click-feedback {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(37, 99, 235, 0.4); /* Blau primari semi-transparent */
+            transform: scale(0);
+            pointer-events: none; /* Click-through */
+            z-index: 9999;
+            width: 20px;
+            height: 20px;
+            margin-left: -10px; /* Centrar */
+            margin-top: -10px;
+            animation: ripple-anim 0.4s ease-out forwards;
+        }
+
+        @keyframes ripple-anim {
+            0% { transform: scale(0); opacity: 0.6; }
+            100% { transform: scale(15); opacity: 0; }
         }
 
         /* --- SISTEMA DE VISTES --- */
@@ -79,9 +100,20 @@
             border-radius: 24px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             object-fit: contain;
+            transition: transform 0.1s; /* Preparat per l'animació */
+        }
+        
+        #calibration-canvas {
+            width: 100%;
+            max-width: 500px;
+            height: 120px;
+            margin: 0 auto 1.5rem auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* Selector Idioma (Rodó i bufó) */
+        /* Selector Idioma */
         #lang-selector {
             position: absolute;
             top: 20px;
@@ -94,29 +126,16 @@
             width: 34px; 
             height: 34px; 
             cursor: pointer; 
-            border-radius: 50%; /* Cercle perfecte */
+            border-radius: 50%;
             box-shadow: 0 3px 6px rgba(0,0,0,0.15); 
             transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
             opacity: 0.6; 
-            border: 2px solid white; /* Vora neta */
-            overflow: hidden; /* Retalla la bandera rectangular */
+            border: 2px solid white;
+            overflow: hidden;
         }
-        .lang-flag:hover { 
-            transform: translateY(-2px); 
-            opacity: 1; 
-            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-        }
-        .lang-flag.active { 
-            opacity: 1; 
-            border-color: var(--primary); /* Indicar actiu */
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-        }
-        .lang-flag svg { 
-            width: 100%; 
-            height: 100%; 
-            display: block; 
-            /* Els SVGs tenen preserveAspectRatio a l'HTML per omplir el cercle */
-        }
+        .lang-flag:hover { transform: translateY(-2px); opacity: 1; box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
+        .lang-flag.active { opacity: 1; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
+        .lang-flag svg { width: 100%; height: 100%; display: block; }
 
         /* --- VISTA 2: MENÚ --- */
         #view-menu { justify-content: flex-start; padding-top: 40px; max-width: 600px; margin: 0 auto; position: relative; }
@@ -150,7 +169,7 @@
             width: 100%; padding: 15px; background: white; border: 1px solid var(--border);
             border-radius: 12px; color: var(--text-main); font-weight: 600; cursor: pointer;
             display: flex; justify-content: center; align-items: center; gap: 10px; transition: all 0.2s;
-            margin-bottom: 2.5rem; /* MÉS ESPAI AQUI */
+            margin-bottom: 2.5rem;
         }
         .btn-random:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
 
@@ -188,7 +207,29 @@
         #score-container {
             width: 100%; max-width: 800px; flex-grow: 1; display: flex; align-items: center; justify-content: center;
             position: relative; overflow: hidden;
+            border: 1px solid transparent; 
+            transition: box-shadow 0.1s, background-color 0.1s;
         }
+        /* Active press effect per Score Container */
+        .active-press {
+            background-color: #e0f2fe !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2) !important;
+            transition: all 0.05s ease-out;
+        }
+
+        .counter-badge {
+            background-color: var(--bg);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+            display: inline-block;
+        }
+
         #notation { display: block; margin: 0 auto; position: relative; }
         #notation svg { width: 100%; height: auto; display: block; }
         #cursor {
@@ -259,8 +300,7 @@
         .main-action-btn:active { transform: scale(0.98); }
         
         #interaction-area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; display: none; cursor: pointer; }
-        .flash { animation: flashAnim 0.1s ease-out; }
-        @keyframes flashAnim { 0% { background-color: rgba(37, 99, 235, 0.1); } 100% { background-color: transparent; } }
+        
         #countdown {
             position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
             font-size: 10rem; font-weight: 800; color: var(--text-main); opacity: 0; pointer-events: none; z-index: 60;
@@ -300,6 +340,11 @@
         <h1 data-i18n="sync_title"></h1>
         <p class="mb-4" data-i18n="sync_desc"></p>
         
+        <!-- CALIBRATION VISUALIZATION CONTAINER -->
+        <div id="calibration-canvas"></div>
+        <!-- Tap Counter Calib -->
+        <div id="tap-counter-calib" class="counter-badge" style="margin-bottom:10px;">Clics: 0</div>
+
         <button id="btn-start-calibration-initial" class="main-action-btn" style="max-width: 200px;"><span data-i18n="btn_start_calib"></span></button>
         <div id="calib-status" class="mt-4" style="height: 20px; font-weight: 600; color: var(--primary);"></div>
     </div>
@@ -340,6 +385,8 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </button>
             <div class="level-title" id="level-indicator"></div>
+             <!-- Tap Counter Game -->
+            <div id="tap-counter-game" class="counter-badge">Clics: 0</div>
             <button id="btn-help" class="nav-icon-btn" title="Ajuda">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             </button>
@@ -404,7 +451,8 @@
                 btn_next: "Següent Nivell →", btn_new_random: "Nou Ritme →", btn_menu_back: "Tornar al menú",
                 analysis_title: "Anàlisi", legend_target: "Objectiu", legend_clicks: "Clics", btn_back: "Tornar",
                 instr_title: "Com Jugar", instr_p1: "1. Prem el botó blau de <strong>Play</strong>.", instr_p2: "2. Sentiràs 4 clics de compte enrere.",
-                instr_p3: "3. Reprodueix el ritme exacte clicant la pantalla o prement la barra d'espai.", instr_p4: "Aconsegueix <strong>50 punts</strong> per desbloquejar el següent nivell.", btn_got_it: "Entesos", latency_label: "Latència"
+                instr_p3: "3. Reprodueix el ritme exacte clicant la pantalla o prement la barra d'espai.", instr_p4: "Aconsegueix <strong>50 punts</strong> per desbloquejar el següent nivell.", btn_got_it: "Entesos", latency_label: "Latència",
+                counter_label: "Clics"
             },
             es: {
                 sync_title: "Sincronización", sync_desc: "Escucha 8 clics y repite el ritmo para calibrar.", btn_start_calib: "Empezar",
@@ -415,7 +463,8 @@
                 btn_next: "Siguiente Nivel →", btn_new_random: "Nuevo Ritmo →", btn_menu_back: "Volver al menú",
                 analysis_title: "Análisis", legend_target: "Objetivo", legend_clicks: "Clics", btn_back: "Volver",
                 instr_title: "Cómo Jugar", instr_p1: "1. Pulsa el botón azul de <strong>Play</strong>.", instr_p2: "2. Escucharás 4 clics de cuenta atrás.",
-                instr_p3: "3. Reproduce el ritmo exacto haciendo clic en la pantalla o pulsando la barra espaciadora.", instr_p4: "Consigue <strong>50 puntos</strong> para desbloquear el siguiente nivel.", btn_got_it: "Entendido", latency_label: "Latencia"
+                instr_p3: "3. Reproduce el ritmo exacto haciendo clic en la pantalla o pulsando la barra espaciadora.", instr_p4: "Consigue <strong>50 puntos</strong> para desbloquear el siguiente nivel.", btn_got_it: "Entendido", latency_label: "Latencia",
+                counter_label: "Clics"
             },
             en: {
                 sync_title: "Synchronization", sync_desc: "Listen to 8 clicks and tap the rhythm to calibrate.", btn_start_calib: "Start",
@@ -426,7 +475,8 @@
                 btn_next: "Next Level →", btn_new_random: "New Rhythm →", btn_menu_back: "Back to menu",
                 analysis_title: "Analysis", legend_target: "Target", legend_clicks: "Clicks", btn_back: "Back",
                 instr_title: "How to Play", instr_p1: "1. Press the blue <strong>Play</strong> button.", instr_p2: "2. You will hear a 4-click countdown.",
-                instr_p3: "3. Play the rhythm by tapping the screen or pressing the spacebar.", instr_p4: "Score <strong>50 points</strong> to unlock the next level.", btn_got_it: "Got it", latency_label: "Latency"
+                instr_p3: "3. Play the rhythm by tapping the screen or pressing the spacebar.", instr_p4: "Score <strong>50 points</strong> to unlock the next level.", btn_got_it: "Got it", latency_label: "Latency",
+                counter_label: "Clicks"
             }
         };
 
@@ -472,6 +522,7 @@
             });
             
             updateDailyButton();
+            updateCounters(); // Ensure counters have correct language
             
             const calibBtnSpan = document.getElementById('calib-label-text');
             if(calibBtnSpan) {
@@ -523,6 +574,7 @@
                     dotQ: { beats: 2, notes: ['qd', '8'] }, sync1: { beats: 2, notes: ['8', 'q', '8'] }, triplet: { beats: 1, notes: ['8t', '8t', '8t'] }
                 };
                 const pool = Object.values(patterns);
+
                 let currentBeats = 0; let attempt = 0;
                 while(attempt < 100) { 
                     level.rhythm = []; currentBeats = 0;
@@ -594,6 +646,7 @@
         let expectedTimestamps = [], userTimestamps = [], cursorTimestamps = [];
         let cursorAnimationFrame = null; let currentRhythm = [], currentVexNotes = [], cursorXMap = [];
         let isDemoPlaying = false; let gameTimeout = null;
+        let tapCount = 0;
 
         const views = { calibration: document.getElementById('view-calibration'), menu: document.getElementById('view-menu'), game: document.getElementById('view-game') };
         const levelsGrid = document.getElementById('levels-grid');
@@ -603,6 +656,16 @@
         function initSynths() {
             metronomeSynth = new Tone.MembraneSynth({ pitchDecay: 0.008, octaves: 2, envelope: { attack: 0.001, decay: 0.1, sustain: 0 } }).toDestination();
             demoSynth = new Tone.PolySynth(Tone.MembraneSynth, { pitchDecay: 0.02, octaves: 3, oscillator: { type: "triangle" }, envelope: { attack: 0.001, decay: 0.2, sustain: 0 } }).toDestination();
+        }
+
+        function updateCounter(type) {
+            const el = document.getElementById('tap-counter-' + type);
+            if (el) el.innerText = getTrans('counter_label') + ': ' + tapCount;
+        }
+        
+        function updateCounters() {
+             updateCounter('calib');
+             updateCounter('game');
         }
 
         // --- 8. PREFERÈNCIES D'USUARI (GUIA VISUAL) ---
@@ -638,8 +701,41 @@
         });
         document.getElementById('btn-recalibrate-menu').addEventListener('click', () => switchView('calibration'));
 
+        function drawCalibrationScore() {
+            const div = document.getElementById('calibration-canvas');
+            if(!div) return;
+            div.innerHTML = '';
+            const VF = Vex.Flow;
+            const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+            // Size fitting the container or default 600
+            const width = Math.min(600, div.clientWidth > 0 ? div.clientWidth : 600);
+            renderer.resize(width, 100);
+            const context = renderer.getContext();
+            
+            const stave = new VF.Stave(10, 10, width - 20);
+            stave.addClef("treble").addTimeSignature("4/4");
+            stave.setContext(context).draw();
+
+            const notes = [
+                new VF.StaveNote({ clef: "treble", keys: ["c/5"], duration: "q", auto_stem: true }),
+                new VF.StaveNote({ clef: "treble", keys: ["c/5"], duration: "q", auto_stem: true }),
+                new VF.StaveNote({ clef: "treble", keys: ["c/5"], duration: "q", auto_stem: true }),
+                new VF.StaveNote({ clef: "treble", keys: ["c/5"], duration: "q", auto_stem: true }),
+                new VF.BarNote(),
+                new VF.StaveNote({ clef: "treble", keys: ["c/5"], duration: "q", auto_stem: true }),
+                new VF.StaveNote({ clef: "treble", keys: ["c/5"], duration: "q", auto_stem: true }),
+                new VF.StaveNote({ clef: "treble", keys: ["c/5"], duration: "q", auto_stem: true }),
+                new VF.StaveNote({ clef: "treble", keys: ["c/5"], duration: "q", auto_stem: true })
+            ];
+
+            const beams = VF.Beam.generateBeams(notes);
+            VF.Formatter.FormatAndDraw(context, stave, notes);
+            beams.forEach(b => b.setContext(context).draw());
+        }
+
         async function runCalibrationSequence(isInitial = false) {
             initSynths();
+            tapCount = 0; updateCounter('calib');
             calibStatus.innerText = getTrans('btn_listen'); 
             const beatMs = 500; currentBeatMs = beatMs;
             userTimestamps = []; expectedTimestamps = [];
@@ -685,9 +781,18 @@
         function handleCalibrationTap(e) { e.preventDefault(); recordCalibrationTap(); }
         function handleCalibrationTapKey(e) { if(e.code === 'Space') { e.preventDefault(); recordCalibrationTap(); } }
         function recordCalibrationTap() {
+            tapCount++; updateCounter('calib');
             const tapTime = (Tone.now() - startTime) * 1000;
             userTimestamps.push(tapTime);
-            calibStatus.style.transform = "scale(1.2)"; setTimeout(()=>calibStatus.style.transform = "scale(1)", 50);
+            // Visual feedback
+            const ripple = document.createElement('div');
+            ripple.className = 'click-feedback';
+            // Center ripple on calibration container or screen
+            const container = document.getElementById('view-calibration');
+            ripple.style.left = '50%';
+            ripple.style.top = '50%';
+            container.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 400);
         }
         function finishCalibration(isInitial) {
             Tone.Transport.stop();
@@ -850,6 +955,9 @@
             
             statusText.innerText = "";
             document.getElementById('btn-play').disabled = false;
+            
+            // Reset counter
+            tapCount = 0; updateCounter('game');
         }
 
         function generateRandomRhythmForPlay() {
@@ -871,6 +979,8 @@
             document.getElementById('cursor-toggle').disabled = true;
 
             userTimestamps = []; isListening = false;
+            tapCount = 0; updateCounter('game');
+            
             const now = Tone.now() + 0.1; const beatSec = currentBeatMs / 1000;
             
             for(let i=0; i<12; i++) {
@@ -894,15 +1004,48 @@
             gameTimeout = setTimeout(() => finishGame(), (12.5 * currentBeatMs) + 100);
         }
 
-        function handleGameTap() {
+        function handleGameTap(e) {
             if (!isListening) return;
-            const t = (Tone.now() - startTime) * 1000; userTimestamps.push(t);
-            document.body.classList.remove('flash'); void document.body.offsetWidth; document.body.classList.add('flash');
+            
+            tapCount++; 
+            updateCounter('game');
+            
+            const t = (Tone.now() - startTime) * 1000; 
+            userTimestamps.push(t);
+
+            // RIPPLE EFFECT
+            const ripple = document.createElement('div');
+            ripple.className = 'click-feedback';
+            
+            if (e.type.startsWith('key')) {
+                // Center if keypress
+                ripple.style.left = '50%';
+                ripple.style.top = '50%';
+                document.getElementById('score-container').appendChild(ripple);
+            } else {
+                // At pointer coords
+                ripple.style.left = e.clientX + 'px';
+                ripple.style.top = e.clientY + 'px';
+                document.body.appendChild(ripple);
+            }
+            setTimeout(() => ripple.remove(), 400);
+
+            // ACTIVE PRESS on Container
+            const container = document.getElementById('score-container');
+            container.classList.remove('active-press');
+            void container.offsetWidth; 
+            container.classList.add('active-press');
+            setTimeout(() => container.classList.remove('active-press'), 50);
         }
 
         const area = document.getElementById('interaction-area');
-        area.addEventListener('pointerdown', (e) => { e.preventDefault(); handleGameTap(); });
-        document.addEventListener('keydown', (e) => { if (e.code === 'Space' && isListening) { e.preventDefault(); handleGameTap(); } });
+        area.addEventListener('pointerdown', (e) => { e.preventDefault(); handleGameTap(e); });
+        document.addEventListener('keydown', (e) => { 
+            if (e.code === 'Space' && isListening) { 
+                e.preventDefault(); 
+                handleGameTap(e); // Pass event to distinguish keypress
+            } 
+        });
 
         function finishGame() {
             isListening = false;
@@ -1154,6 +1297,12 @@
         // Start App
         initLanguage();
         loadProgress();
+        // Resize listener for calibration score
+        window.addEventListener('resize', () => {
+             drawCalibrationScore();
+        });
+        // Initial draw
+        drawCalibrationScore();
 
     </script>
 </body>
