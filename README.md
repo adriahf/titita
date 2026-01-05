@@ -7,12 +7,7 @@
 <p align="center">
 <strong>Una aplicació web interactiva per entrenar la precisió rítmica, gamificada i accessible per a tothom.</strong>
 </p>
-
-<p align="center">
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/license-GNU%2520GPLv3-blue.svg%3Fstyle%3Dflat-square" alt="License">
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/platform-Web-orange.svg%3Fstyle%3Dflat-square" alt="Platform">
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/built%2520with-Tone.js%2520%257C%2520VexFlow-yellow.svg%3Fstyle%3Dflat-square" alt="Tech Stack">
-</p>
+<br>
 
 ## 📖 Sobre el projecte
 
