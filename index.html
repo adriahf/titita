@@ -42,20 +42,20 @@
             margin: 0;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            overflow: hidden; /* Evitar scrollbars per les animacions */
+            overflow: hidden; 
         }
 
-        /* --- NOUS ESTILS RIPPLE (Clic Efecte) --- */
+        /* --- ESTILS RIPPLE (Clic Efecte) --- */
         .click-feedback {
             position: absolute;
             border-radius: 50%;
-            background: rgba(37, 99, 235, 0.4); /* Blau primari semi-transparent */
+            background: rgba(37, 99, 235, 0.4); 
             transform: scale(0);
-            pointer-events: none; /* Click-through */
+            pointer-events: none; 
             z-index: 9999;
             width: 20px;
             height: 20px;
-            margin-left: -10px; /* Centrar */
+            margin-left: -10px; 
             margin-top: -10px;
             animation: ripple-anim 0.4s ease-out forwards;
         }
@@ -100,7 +100,7 @@
             border-radius: 24px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             object-fit: contain;
-            transition: transform 0.1s; /* Preparat per l'animació */
+            transition: transform 0.1s; 
         }
         
         #calibration-canvas {
@@ -205,17 +205,13 @@
         .level-title { font-size: 1rem; font-weight: 700; color: var(--text-main); }
         
         #score-container {
-            width: 100%; max-width: 800px; flex-grow: 1; display: flex; align-items: center; justify-content: center;
+            width: 100%; max-width: 800px; 
+            flex-grow: 0; 
+            margin-top: auto; 
+            display: flex; align-items: center; justify-content: center;
             position: relative; overflow: hidden;
             border: 1px solid transparent; 
             transition: box-shadow 0.1s, background-color 0.1s;
-        }
-        /* Active press effect per Score Container */
-        .active-press {
-            background-color: #e0f2fe !important;
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2) !important;
-            transition: all 0.05s ease-out;
         }
 
         .counter-badge {
@@ -239,8 +235,10 @@
         .vf-stavenote.highlight path { fill: var(--highlight) !important; stroke: var(--highlight) !important; }
         
         .controls-area {
-            width: 100%; padding: 30px 20px; background: var(--surface);
+            width: 100%; padding: 10px 20px 30px 20px; 
+            background: var(--surface);
             display: flex; flex-direction: column; align-items: center; gap: 20px;
+            margin-bottom: auto; 
         }
         .btn-play-big {
             width: 80px; height: 80px; border-radius: 50%; background: var(--primary); border: none; color: white;
@@ -250,6 +248,7 @@
         .btn-play-big:active { transform: scale(0.95); }
         .btn-play-big:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
         .btn-play-big svg { width: 32px; height: 32px; fill: white; margin-left: 4px; }
+        
         .toggle-compact { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; user-select: none; }
         .toggle-switch { position: relative; width: 44px; height: 24px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -452,7 +451,7 @@
                 analysis_title: "Anàlisi", legend_target: "Objectiu", legend_clicks: "Clics", btn_back: "Tornar",
                 instr_title: "Com Jugar", instr_p1: "1. Prem el botó blau de <strong>Play</strong>.", instr_p2: "2. Sentiràs 4 clics de compte enrere.",
                 instr_p3: "3. Reprodueix el ritme exacte clicant la pantalla o prement la barra d'espai.", instr_p4: "Aconsegueix <strong>50 punts</strong> per desbloquejar el següent nivell.", btn_got_it: "Entesos", latency_label: "Latència",
-                counter_label: "Clics"
+                counter_label: "Clics", btn_listen: "Escolta..."
             },
             es: {
                 sync_title: "Sincronización", sync_desc: "Escucha 8 clics y repite el ritmo para calibrar.", btn_start_calib: "Empezar",
@@ -464,7 +463,7 @@
                 analysis_title: "Análisis", legend_target: "Objetivo", legend_clicks: "Clics", btn_back: "Volver",
                 instr_title: "Cómo Jugar", instr_p1: "1. Pulsa el botón azul de <strong>Play</strong>.", instr_p2: "2. Escucharás 4 clics de cuenta atrás.",
                 instr_p3: "3. Reproduce el ritmo exacto haciendo clic en la pantalla o pulsando la barra espaciadora.", instr_p4: "Consigue <strong>50 puntos</strong> para desbloquear el siguiente nivel.", btn_got_it: "Entendido", latency_label: "Latencia",
-                counter_label: "Clics"
+                counter_label: "Clics", btn_listen: "Escucha..."
             },
             en: {
                 sync_title: "Synchronization", sync_desc: "Listen to 8 clicks and tap the rhythm to calibrate.", btn_start_calib: "Start",
@@ -476,7 +475,7 @@
                 analysis_title: "Analysis", legend_target: "Target", legend_clicks: "Clicks", btn_back: "Back",
                 instr_title: "How to Play", instr_p1: "1. Press the blue <strong>Play</strong> button.", instr_p2: "2. You will hear a 4-click countdown.",
                 instr_p3: "3. Play the rhythm by tapping the screen or pressing the spacebar.", instr_p4: "Score <strong>50 points</strong> to unlock the next level.", btn_got_it: "Got it", latency_label: "Latency",
-                counter_label: "Clicks"
+                counter_label: "Clicks", btn_listen: "Listen..."
             }
         };
 
@@ -522,7 +521,7 @@
             });
             
             updateDailyButton();
-            updateCounters(); // Ensure counters have correct language
+            updateCounters(); 
             
             const calibBtnSpan = document.getElementById('calib-label-text');
             if(calibBtnSpan) {
@@ -574,7 +573,6 @@
                     dotQ: { beats: 2, notes: ['qd', '8'] }, sync1: { beats: 2, notes: ['8', 'q', '8'] }, triplet: { beats: 1, notes: ['8t', '8t', '8t'] }
                 };
                 const pool = Object.values(patterns);
-
                 let currentBeats = 0; let attempt = 0;
                 while(attempt < 100) { 
                     level.rhythm = []; currentBeats = 0;
@@ -778,22 +776,37 @@
                 finishCalibration(isInitial);
             }, (16.5 * beatMs) + 500);
         }
-        function handleCalibrationTap(e) { e.preventDefault(); recordCalibrationTap(); }
-        function handleCalibrationTapKey(e) { if(e.code === 'Space') { e.preventDefault(); recordCalibrationTap(); } }
-        function recordCalibrationTap() {
+        function handleCalibrationTap(e) { e.preventDefault(); recordCalibrationTap(e); }
+        function handleCalibrationTapKey(e) { if(e.code === 'Space') { e.preventDefault(); recordCalibrationTap(e); } }
+        
+        function recordCalibrationTap(e) {
             tapCount++; updateCounter('calib');
             const tapTime = (Tone.now() - startTime) * 1000;
             userTimestamps.push(tapTime);
-            // Visual feedback
+
+            // RIPPLE EFFECT CALIBRATION
             const ripple = document.createElement('div');
             ripple.className = 'click-feedback';
-            // Center ripple on calibration container or screen
-            const container = document.getElementById('view-calibration');
-            ripple.style.left = '50%';
-            ripple.style.top = '50%';
-            container.appendChild(ripple);
+            if (e && e.type.startsWith('key')) {
+                ripple.style.left = '50%'; ripple.style.top = '50%';
+                document.getElementById('view-calibration').appendChild(ripple);
+            } else if (e) {
+                ripple.style.left = e.clientX + 'px'; ripple.style.top = e.clientY + 'px';
+                document.body.appendChild(ripple);
+            }
             setTimeout(() => ripple.remove(), 400);
+
+            // Active press feedback for calibration icon
+            const icon = document.querySelector('.pulse-icon');
+            if(icon) {
+                 // Removed flash logic
+                 // icon.classList.remove('active-press'); 
+                 // void icon.offsetWidth;
+                 // icon.classList.add('active-press');
+                 // setTimeout(() => icon.classList.remove('active-press'), 100);
+            }
         }
+
         function finishCalibration(isInitial) {
             Tone.Transport.stop();
             if (userTimestamps.length > 0) {
@@ -1017,12 +1030,12 @@
             const ripple = document.createElement('div');
             ripple.className = 'click-feedback';
             
-            if (e.type.startsWith('key')) {
+            if (e && e.type.startsWith('key')) {
                 // Center if keypress
                 ripple.style.left = '50%';
                 ripple.style.top = '50%';
                 document.getElementById('score-container').appendChild(ripple);
-            } else {
+            } else if (e) {
                 // At pointer coords
                 ripple.style.left = e.clientX + 'px';
                 ripple.style.top = e.clientY + 'px';
@@ -1030,12 +1043,7 @@
             }
             setTimeout(() => ripple.remove(), 400);
 
-            // ACTIVE PRESS on Container
-            const container = document.getElementById('score-container');
-            container.classList.remove('active-press');
-            void container.offsetWidth; 
-            container.classList.add('active-press');
-            setTimeout(() => container.classList.remove('active-press'), 50);
+            // NO MORE ACTIVE PRESS (FLASH REMOVED)
         }
 
         const area = document.getElementById('interaction-area');
